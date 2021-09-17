@@ -1,14 +1,19 @@
 extern crate bindgen;
+extern crate run_script;
 
 use std::env;
 use std::path::PathBuf;
+use std::process::Command;
+use run_script::ScriptOptions;
 
 fn main() {
     println!("cargo:rustc-link-search=all=/root/cortx-motr/motr/.libs/");
     println!("cargo:rustc-link-search=all=/root/messy/rust-mio/src");
     println!("cargo:rustc-link-lib=motr");
-    println!("cargo:rustc-link-lib=mio");
+//    println!("cargo:rustc-link-lib=mio");
     println!("cargo:rustc-env=LD_LIBRARY_PATH={}", "/root/cortx-motr/motr/.libs/:/root/messy/rust-mio/src");
+
+
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
@@ -28,4 +33,25 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+
+    let options = ScriptOptions::new();
+
+    let bindings_rs_path = (out_path.join("bindings.rs").into_os_string().into_string().unwrap());
+
+    let args = vec![bindings_rs_path];
+
+    run_script::run_script!(
+        r#"
+        sed -i '/pub\sfn\sm0_init_instance()/i \
+        }\
+        #[link(name = "motr")]\
+        extern "C" {\
+            ' $1
+        exit 0
+         "#,
+        &args,
+        &options
+    );
+
+
 }
