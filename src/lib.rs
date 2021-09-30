@@ -7,4 +7,4 @@ extern crate anyhow;
 
 extern crate libc;
 
-pub mod reader;
+pub mod client;
