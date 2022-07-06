@@ -130,11 +130,32 @@ Services:
 Therefore, I will modify the cluster parameters in ``src/client.rs`` into:
 
 ```Rust
-    static ha_addr_str: &str = "10.140.82.80@22001";
-    static local_addr_str: &str = "10.140.82.80@22501";
+    static ha_addr_str: &str = "inet:tcp:10.140.82.80@22001";
+    static local_addr_str: &str = "inet:tcp:10.140.82.80@22501";
     static profile_fid_str: &str = "0x7000000000000001:0x0";
     static process_fid_str: &str = "0x7200000000000001:0x3";
 ```
+
+Then you can run the tests.
+
+You can first test creating an object in CORTX Motr:
+
+``cargo test client::tests::test_create -- --nocapture``
+
+You can then test writing data to the object which you have just created:
+
+``cargo test client::tests::test_write -- --nocapture``
+
+This will write 8192 "X" characters to the object. The API by default uses 4KB as block size, so the 8192 char string will be writen into 2 blocks in CORTX.
+
+You can then test reading data:
+
+``cargo test client::tests::test_read -- --nocapture``
+
+This will read 5000 characters from the object which you have just written to, starting from offset 400. The read data is outputed to a file ``temp.txt`` in your current folder. You can check that file and see its size is 5000 Bytes and contains 5000 "X" characters.
+
+
+
 
 
 
